@@ -4,17 +4,31 @@ import { createStore } from "solid-js/store";
 import { batch, createSignal, For } from "solid-js";
 import {
     chordSeminoteToChordName,
+    ChordTypeCheckboxes,
     getAllChordsForSeminote,
     semitoneToToneAndOctave,
 } from "~/utils/notes.js";
+import { ChordBadge, MiniChordBadge } from "~/components/chordBadges.jsx";
 var piano = SampleLibrary.load({
     instruments: "piano",
 });
 
 export default function Home() {
     let [currentChord, setCurrentChord] = createSignal("");
-    let [matchingChords, setMatchingChords] = createSignal("");
+    let [currentChordNotes, setCurrentChordNotes] = createSignal<string[]>([]);
+    let [matchingChords, setMatchingChords] = createSignal<
+        { name: string; notes: string[] }[] | undefined
+    >();
     let [isToneLoaded, setIsToneLoaded] = createSignal(false);
+    let [chordTypes, setChordTypes] = createStore<ChordTypeCheckboxes>({
+        majors: true,
+        minor: true,
+        sus2: true,
+        sus4: true,
+        dom7: true,
+        maj7: false,
+        min7: true,
+    });
 
     Tone.ToneAudioBuffer.loaded().then(() => {
         setIsToneLoaded(true);
@@ -81,35 +95,51 @@ export default function Home() {
 
     let keyMouseDown = (key: Key) => {
         if (!isToneLoaded()) return;
-        let chords = getAllChordsForSeminote(key.seminote);
+        let chords = getAllChordsForSeminote(key.seminote, chordTypes);
         let specialChords = chords.filter(
             (c) => c!.matchingFifthSeminotes >= 3
         );
         let randomChord =
             specialChords[Math.floor(Math.random() * specialChords.length)]!;
 
-        let chordsOctaveOffset = 1;
+        let chordsOctaveOffset = 2;
+        let lowestSeminote =
+            randomChord.seminotes[
+                Math.floor(Math.random() * randomChord.seminotes.length)
+            ];
+        console.log("lowest semi", lowestSeminote);
         let mappedNotes = randomChord.seminotes.map((semi) => {
-            let lowestSeminote =
-                randomChord.seminotes[
-                    Math.floor(Math.random() * randomChord.seminotes.length)
-                ];
-            // console.log("lowest semi", lowestSeminote);
+            // randomize order of note in chord
             return semitoneToToneAndOctave(
                 semi,
-                semi < lowestSeminote
-                    ? key.octave + 1 - chordsOctaveOffset
-                    : key.octave - chordsOctaveOffset
+                semi >= lowestSeminote
+                    ? key.octave - chordsOctaveOffset
+                    : key.octave + 1 - chordsOctaveOffset
             );
         });
 
+        const now = Tone.now();
         piano.toDestination();
+        mappedNotes.forEach((note, index) => {
+            piano.triggerAttackRelease(note, "2n", now + index * 0.2);
+        });
         piano.triggerAttackRelease(
-            [...mappedNotes, semitoneToToneAndOctave(key.seminote, key.octave)],
-            "2n"
+            semitoneToToneAndOctave(key.seminote, key.octave + 1),
+            "2n",
+            now
         );
+        // piano.triggerAttackRelease(
+        //     [...mappedNotes, semitoneToToneAndOctave(key.seminote, key.octave)],
+        //     "2n",
+        //     now
+        // );
         setCurrentChord(randomChord.name);
-        setMatchingChords(specialChords.map((ch) => ch!.name).join(", "));
+        setCurrentChordNotes(mappedNotes);
+        setMatchingChords(
+            specialChords.map((ch) => {
+                return { name: ch!.name, notes: [] };
+            })
+        );
         batch(() => {
             setKeys(
                 (storeKey) => storeKey.isPlaying === true,
@@ -134,10 +164,12 @@ export default function Home() {
     let rightMouseKeyDown = (key: Key) => {
         if (!isToneLoaded()) return;
 
+        const now = Tone.now();
         piano.toDestination();
         piano.triggerAttackRelease(
             semitoneToToneAndOctave(key.seminote, key.octave),
-            "2n"
+            "2n",
+            now
         );
 
         batch(() => {
@@ -155,10 +187,9 @@ export default function Home() {
     };
     return (
         <>
-            HI
             <div
                 id="keys"
-                style="width: 1300px; height:200px; position:relative"
+                style="height:120px; position:relative; overflow-x:scroll;scrollbar-width: thin;"
             >
                 <For each={keys}>
                     {(key) => (
@@ -221,19 +252,48 @@ export default function Home() {
                     )}
                 </For>
             </div>
-            <div>
-                <b>chord: </b>
-                {currentChord()}
+            <div style="margin-top:15px;display: flex; justify-content:center">
+                <ChordBadge
+                    chordName={currentChord()}
+                    onClick={() => {
+                        const now = Tone.now();
+                        piano.toDestination();
+                        currentChordNotes().forEach((note, index) => {
+                            piano.triggerAttackRelease(
+                                note,
+                                "2n",
+                                now + index * 0.2
+                            );
+                        });
+                    }}
+                ></ChordBadge>
             </div>
-            <div>
-                <b>matching chords: </b>
-                {matchingChords()}
+            <div style="margin-top: 10px; font-size:10px; display: flex; justify-content:center">
+                <i>matching chords</i>
             </div>
-            <img
-                style="position: absolute; left: 700px; top:200px"
-                width="400"
-                src="fifths.webp"
-            />
+            <div style="display: flex; justify-content:center">
+                <For each={matchingChords()}>
+                    {(chord) => (
+                        <MiniChordBadge
+                            chordName={chord.name}
+                            onClick={() => {
+                                const now = Tone.now();
+                                piano.toDestination();
+                                chord.notes.forEach((note, index) => {
+                                    piano.triggerAttackRelease(
+                                        note,
+                                        "2n",
+                                        now + index * 0.2
+                                    );
+                                });
+                            }}
+                        ></MiniChordBadge>
+                    )}
+                </For>
+            </div>
+            <div style="display: flex; justify-content:center">
+                <img width="400" src="fifths.webp" />
+            </div>
         </>
     );
 }
