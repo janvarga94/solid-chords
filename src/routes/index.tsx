@@ -9,6 +9,8 @@ import {
     semitoneToToneAndOctave,
 } from "~/utils/notes.js";
 import { ChordBadge, MiniChordBadge } from "~/components/ChordBadges.jsx";
+import { createKeyViewmodel } from "~/utils/keyViewmodel.js";
+import { Key } from "~/models/viewModel.js";
 var piano = SampleLibrary.load({
     instruments: "piano",
 });
@@ -20,6 +22,9 @@ export default function Home() {
         { name: string; notes: string[] }[] | undefined
     >();
     let [isToneLoaded, setIsToneLoaded] = createSignal(false);
+    let [chordPlayMode, setChordPlayMode] = createSignal<
+        "together" | "fan-ascending"
+    >("together");
     let [chordTypes, setChordTypes] = createStore<ChordType[]>([
         "major",
         "minor",
@@ -40,64 +45,7 @@ export default function Home() {
         setIsToneLoaded(true);
     });
 
-    type Key = {
-        seminote: number;
-        noteAndOctave: string;
-        myChordMark: string;
-        octave: number;
-        isBlack: boolean;
-        width: number;
-        left: number;
-        isPlaying: boolean;
-    };
-
-    let [keys, setKeys] = createStore(
-        [...Array(88).keys()].map((keyIndex): Key => {
-            let octave = Math.floor(keyIndex / 12) + 1;
-            let seminote = (keyIndex + 1) % 12 || 12;
-            let whiteWidth = 20;
-            let blackWidth = 16;
-            let isBlack = [2, 4, 7, 9, 11].includes(seminote);
-
-            /** used only for key positioning on the screen */
-            let keySequence = !isBlack
-                ? seminote === 1
-                    ? 1
-                    : seminote === 3
-                      ? 2
-                      : seminote === 5
-                        ? 3
-                        : seminote === 6
-                          ? 4
-                          : seminote === 8
-                            ? 5
-                            : seminote === 10
-                              ? 6
-                              : 7
-                : seminote === 2
-                  ? 1
-                  : seminote === 4
-                    ? 2
-                    : seminote === 7
-                      ? 4
-                      : seminote === 9
-                        ? 5
-                        : 6;
-            return {
-                seminote,
-                noteAndOctave: semitoneToToneAndOctave(seminote, octave),
-                myChordMark: chordSeminoteToChordName(seminote),
-                octave,
-                isBlack,
-                width: isBlack ? blackWidth : whiteWidth,
-                left:
-                    (octave - 1) * whiteWidth * 7 +
-                    (keySequence - 1) * whiteWidth +
-                    (isBlack ? whiteWidth - blackWidth / 2 : 0),
-                isPlaying: false,
-            };
-        })
-    );
+    let [keys, setKeys] = createStore(createKeyViewmodel());
 
     let keyMouseDown = (key: Key) => {
         if (!isToneLoaded()) return;
@@ -126,7 +74,11 @@ export default function Home() {
         const now = Tone.now();
         piano.toDestination();
         mappedNotes.forEach((note, index) => {
-            piano.triggerAttackRelease(note, "2n", now + index * 0.2);
+            piano.triggerAttackRelease(
+                note,
+                "2n",
+                now + (chordPlayMode() === "fan-ascending" ? index * 0.2 : 0)
+            );
         });
         piano.triggerAttackRelease(
             semitoneToToneAndOctave(key.seminote, key.octave + 1),
@@ -190,11 +142,43 @@ export default function Home() {
             );
         });
     };
+
     return (
         <>
+            <div style="margin-top:15px;display: flex; justify-content:center">
+                {allChordTypes.map((chordType, index) => (
+                    <span
+                        style={{
+                            "border-radius": "2px",
+                            padding: "0px 10px",
+                            "background-color":
+                                index % 2 === 0
+                                    ? "rgb(210,210,210)"
+                                    : undefined,
+                        }}
+                    >
+                        {chordType}
+                        <input
+                            type="checkbox"
+                            checked={chordTypes.includes(chordType)}
+                            onInput={(e) => {
+                                if (e.target.checked) {
+                                    setChordTypes([...chordTypes, chordType]);
+                                } else {
+                                    setChordTypes([
+                                        ...chordTypes.filter(
+                                            (c) => c !== chordType
+                                        ),
+                                    ]);
+                                }
+                            }}
+                        ></input>
+                    </span>
+                ))}
+            </div>
             <div
                 id="keys"
-                style="height:120px; position:relative; overflow-x:scroll;scrollbar-width: thin;"
+                style="height:120px; position:relative; overflow-x:scroll;scrollbar-width: thin; margin-top: 15px;"
             >
                 <For each={keys}>
                     {(key) => (
@@ -257,37 +241,7 @@ export default function Home() {
                     )}
                 </For>
             </div>
-            <div style="margin-top:15px;display: flex; justify-content:center">
-                {allChordTypes.map((chordType, index) => (
-                    <span
-                        style={{
-                            "border-radius": "2px",
-                            padding: "0px 10px",
-                            "background-color":
-                                index % 2 === 0
-                                    ? "rgb(210,210,210)"
-                                    : undefined,
-                        }}
-                    >
-                        {chordType}
-                        <input
-                            type="checkbox"
-                            checked={chordTypes.includes(chordType)}
-                            onInput={(e) => {
-                                if (e.target.checked) {
-                                    setChordTypes([...chordTypes, chordType]);
-                                } else {
-                                    setChordTypes([
-                                        ...chordTypes.filter(
-                                            (c) => c !== chordType
-                                        ),
-                                    ]);
-                                }
-                            }}
-                        ></input>
-                    </span>
-                ))}
-            </div>
+
             <div style="margin-top:15px;display: flex; justify-content:center">
                 <ChordBadge
                     chordName={currentChord()}
