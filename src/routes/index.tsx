@@ -4,11 +4,11 @@ import { createStore } from "solid-js/store";
 import { batch, createSignal, For } from "solid-js";
 import {
     chordSeminoteToChordName,
-    ChordTypeCheckboxes,
+    ChordType,
     getAllChordsForSeminote,
     semitoneToToneAndOctave,
 } from "~/utils/notes.js";
-import { ChordBadge, MiniChordBadge } from "~/components/chordBadges.jsx";
+import { ChordBadge, MiniChordBadge } from "~/components/ChordBadges.jsx";
 var piano = SampleLibrary.load({
     instruments: "piano",
 });
@@ -20,15 +20,21 @@ export default function Home() {
         { name: string; notes: string[] }[] | undefined
     >();
     let [isToneLoaded, setIsToneLoaded] = createSignal(false);
-    let [chordTypes, setChordTypes] = createStore<ChordTypeCheckboxes>({
-        majors: true,
-        minor: true,
-        sus2: true,
-        sus4: true,
-        dom7: true,
-        maj7: false,
-        min7: true,
-    });
+    let [chordTypes, setChordTypes] = createStore<ChordType[]>([
+        "major",
+        "minor",
+        "sus2",
+        "sus4",
+    ]);
+    let allChordTypes: ChordType[] = [
+        "major",
+        "minor",
+        "sus2",
+        "sus4",
+        "dom7",
+        "maj7",
+        "min7",
+    ];
 
     Tone.ToneAudioBuffer.loaded().then(() => {
         setIsToneLoaded(true);
@@ -96,9 +102,9 @@ export default function Home() {
     let keyMouseDown = (key: Key) => {
         if (!isToneLoaded()) return;
         let chords = getAllChordsForSeminote(key.seminote, chordTypes);
-        let specialChords = chords.filter(
+        let specialChords = chords; /*.filter(
             (c) => c!.matchingFifthSeminotes >= 3
-        );
+        );*/
         let randomChord =
             specialChords[Math.floor(Math.random() * specialChords.length)]!;
 
@@ -107,7 +113,6 @@ export default function Home() {
             randomChord.seminotes[
                 Math.floor(Math.random() * randomChord.seminotes.length)
             ];
-        console.log("lowest semi", lowestSeminote);
         let mappedNotes = randomChord.seminotes.map((semi) => {
             // randomize order of note in chord
             return semitoneToToneAndOctave(
@@ -251,6 +256,37 @@ export default function Home() {
                         </div>
                     )}
                 </For>
+            </div>
+            <div style="margin-top:15px;display: flex; justify-content:center">
+                {allChordTypes.map((chordType, index) => (
+                    <span
+                        style={{
+                            "border-radius": "2px",
+                            padding: "0px 10px",
+                            "background-color":
+                                index % 2 === 0
+                                    ? "rgb(210,210,210)"
+                                    : undefined,
+                        }}
+                    >
+                        {chordType}
+                        <input
+                            type="checkbox"
+                            checked={chordTypes.includes(chordType)}
+                            onInput={(e) => {
+                                if (e.target.checked) {
+                                    setChordTypes([...chordTypes, chordType]);
+                                } else {
+                                    setChordTypes([
+                                        ...chordTypes.filter(
+                                            (c) => c !== chordType
+                                        ),
+                                    ]);
+                                }
+                            }}
+                        ></input>
+                    </span>
+                ))}
             </div>
             <div style="margin-top:15px;display: flex; justify-content:center">
                 <ChordBadge
