@@ -89,6 +89,7 @@ export default function Home() {
                         <MiniChordBadge
                             chordName={chord.name}
                             onClick={() => {
+                                console.log("palying mini", chord);
                                 play(chord.notes);
                             }}
                         ></MiniChordBadge>

@@ -1,10 +1,10 @@
 import { batch, For } from "solid-js";
 import { createStore } from "solid-js/store";
-import { createKeyViewmodel } from "~/bussiness/keyViewmodel";
+import { createKeyViewmodel } from "~/bussiness/pianoKeyViewmodel";
 import {
     ChordType,
     getAllChordsForSeminote,
-    semitoneToToneAndOctave,
+    semitoneToNoteAndOctave,
 } from "~/bussiness/notes";
 import { play } from "~/bussiness/player";
 import { Key } from "~/models/viewModel";
@@ -41,7 +41,7 @@ export function Piano(props: {
             ];
         let mappedNotes = randomChord.seminotes.map((semi) => {
             // randomize order of note in chord
-            return semitoneToToneAndOctave(
+            return semitoneToNoteAndOctave(
                 semi,
                 semi >= lowestSeminote
                     ? key.octave - chordsOctaveOffset
@@ -50,7 +50,7 @@ export function Piano(props: {
         });
 
         play(mappedNotes);
-        play([semitoneToToneAndOctave(key.seminote, key.octave + 1)]);
+        play([semitoneToNoteAndOctave(key.seminote, key.octave + 1)]);
 
         props.onChordPlay(
             { name: randomChord.name, notes: mappedNotes },
@@ -72,7 +72,7 @@ export function Piano(props: {
             setKeys(
                 (storeKey) =>
                     storeKey.noteAndOctave ===
-                    semitoneToToneAndOctave(key.seminote, key.octave),
+                    semitoneToNoteAndOctave(key.seminote, key.octave),
                 "isPlaying",
                 true
             );
@@ -80,7 +80,7 @@ export function Piano(props: {
     };
 
     let playKey = (key: Key) => {
-        play([semitoneToToneAndOctave(key.seminote, key.octave)]);
+        play([semitoneToNoteAndOctave(key.seminote, key.octave)]);
 
         batch(() => {
             setKeys(

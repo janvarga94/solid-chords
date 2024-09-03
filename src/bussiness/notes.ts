@@ -129,7 +129,7 @@ export function chordSeminoteToChordName(seminote: number) {
     }
 }
 
-export function semitoneToToneAndOctave(seminote: number, octave: number) {
+export function semitoneToNoteAndOctave(seminote: number, octave: number) {
     switch (seminote) {
         case 1:
             return "C" + octave;
