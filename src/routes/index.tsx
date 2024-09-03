@@ -1,19 +1,14 @@
-import * as Tone from "tone";
-import { SampleLibrary } from "../tone-instruments.js";
 import { createStore } from "solid-js/store";
 import { batch, createSignal, For } from "solid-js";
 import {
-    chordSeminoteToChordName,
     ChordType,
     getAllChordsForSeminote,
     semitoneToToneAndOctave,
-} from "~/utils/notes.js";
+} from "~/bussiness/notes.js";
 import { ChordBadge, MiniChordBadge } from "~/components/ChordBadges.jsx";
-import { createKeyViewmodel } from "~/utils/keyViewmodel.js";
+import { createKeyViewmodel } from "~/bussiness/keyViewmodel.js";
 import { Key } from "~/models/viewModel.js";
-var piano = SampleLibrary.load({
-    instruments: "piano",
-});
+import { ChordPlayMode, play } from "~/bussiness/player";
 
 export default function Home() {
     let [currentChord, setCurrentChord] = createSignal("");
@@ -21,10 +16,9 @@ export default function Home() {
     let [matchingChords, setMatchingChords] = createSignal<
         { name: string; notes: string[] }[] | undefined
     >();
-    let [isToneLoaded, setIsToneLoaded] = createSignal(false);
-    let [chordPlayMode, setChordPlayMode] = createSignal<
-        "together" | "fan-ascending"
-    >("together");
+
+    let [chordPlayMode, setChordPlayMode] =
+        createSignal<ChordPlayMode>("together");
     let [chordTypes, setChordTypes] = createStore<ChordType[]>([
         "major",
         "minor",
@@ -41,14 +35,9 @@ export default function Home() {
         "min7",
     ];
 
-    Tone.ToneAudioBuffer.loaded().then(() => {
-        setIsToneLoaded(true);
-    });
-
     let [keys, setKeys] = createStore(createKeyViewmodel());
 
-    let keyMouseDown = (key: Key) => {
-        if (!isToneLoaded()) return;
+    let playKeyWithMatchingChord = (key: Key) => {
         let chords = getAllChordsForSeminote(key.seminote, chordTypes);
         let specialChords = chords; /*.filter(
             (c) => c!.matchingFifthSeminotes >= 3
@@ -56,7 +45,7 @@ export default function Home() {
         let randomChord =
             specialChords[Math.floor(Math.random() * specialChords.length)]!;
 
-        let chordsOctaveOffset = 2;
+        let chordsOctaveOffset = 1;
         let lowestSeminote =
             randomChord.seminotes[
                 Math.floor(Math.random() * randomChord.seminotes.length)
@@ -71,25 +60,9 @@ export default function Home() {
             );
         });
 
-        const now = Tone.now();
-        piano.toDestination();
-        mappedNotes.forEach((note, index) => {
-            piano.triggerAttackRelease(
-                note,
-                "2n",
-                now + (chordPlayMode() === "fan-ascending" ? index * 0.2 : 0)
-            );
-        });
-        piano.triggerAttackRelease(
-            semitoneToToneAndOctave(key.seminote, key.octave + 1),
-            "2n",
-            now
-        );
-        // piano.triggerAttackRelease(
-        //     [...mappedNotes, semitoneToToneAndOctave(key.seminote, key.octave)],
-        //     "2n",
-        //     now
-        // );
+        play(mappedNotes);
+        play([semitoneToToneAndOctave(key.seminote, key.octave + 1)]);
+
         setCurrentChord(randomChord.name);
         setCurrentChordNotes(mappedNotes);
         setMatchingChords(
@@ -118,16 +91,8 @@ export default function Home() {
         });
     };
 
-    let rightMouseKeyDown = (key: Key) => {
-        if (!isToneLoaded()) return;
-
-        const now = Tone.now();
-        piano.toDestination();
-        piano.triggerAttackRelease(
-            semitoneToToneAndOctave(key.seminote, key.octave),
-            "2n",
-            now
-        );
+    let playKey = (key: Key) => {
+        play([semitoneToToneAndOctave(key.seminote, key.octave)]);
 
         batch(() => {
             setKeys(
@@ -141,6 +106,14 @@ export default function Home() {
                 true
             );
         });
+    };
+
+    let chordTypeChange = (isChecked: boolean, chordType: ChordType) => {
+        if (isChecked) {
+            setChordTypes([...chordTypes, chordType]);
+        } else {
+            setChordTypes([...chordTypes.filter((c) => c !== chordType)]);
+        }
     };
 
     return (
@@ -161,17 +134,9 @@ export default function Home() {
                         <input
                             type="checkbox"
                             checked={chordTypes.includes(chordType)}
-                            onInput={(e) => {
-                                if (e.target.checked) {
-                                    setChordTypes([...chordTypes, chordType]);
-                                } else {
-                                    setChordTypes([
-                                        ...chordTypes.filter(
-                                            (c) => c !== chordType
-                                        ),
-                                    ]);
-                                }
-                            }}
+                            onInput={(e) =>
+                                chordTypeChange(e.target.checked, chordType)
+                            }
                         ></input>
                     </span>
                 ))}
@@ -184,11 +149,11 @@ export default function Home() {
                     {(key) => (
                         <div
                             oncontextmenu={(e) => {
-                                rightMouseKeyDown(key);
+                                playKey(key);
                                 e.preventDefault();
                             }}
                             onMouseDown={(e) =>
-                                e.button === 0 && keyMouseDown(key)
+                                e.button === 0 && playKeyWithMatchingChord(key)
                             }
                             style={{
                                 border: "solid 1px black",
@@ -246,15 +211,7 @@ export default function Home() {
                 <ChordBadge
                     chordName={currentChord()}
                     onClick={() => {
-                        const now = Tone.now();
-                        piano.toDestination();
-                        currentChordNotes().forEach((note, index) => {
-                            piano.triggerAttackRelease(
-                                note,
-                                "2n",
-                                now + index * 0.2
-                            );
-                        });
+                        play(currentChordNotes());
                     }}
                 ></ChordBadge>
             </div>
@@ -267,15 +224,7 @@ export default function Home() {
                         <MiniChordBadge
                             chordName={chord.name}
                             onClick={() => {
-                                const now = Tone.now();
-                                piano.toDestination();
-                                chord.notes.forEach((note, index) => {
-                                    piano.triggerAttackRelease(
-                                        note,
-                                        "2n",
-                                        now + index * 0.2
-                                    );
-                                });
+                                play(chord.notes);
                             }}
                         ></MiniChordBadge>
                     )}

@@ -1,7 +1,7 @@
 export function ChordBadge(props: { chordName: string; onClick: () => void }) {
     return (
         <div
-            onClick={props.onClick}
+            onMouseDown={props.onClick}
             style={{
                 "font-size": "30px",
                 display: "inline-flex",
@@ -27,7 +27,7 @@ export function MiniChordBadge(props: {
 }) {
     return (
         <div
-            onClick={props.onClick}
+            onMouseDown={props.onClick}
             style={{
                 "font-size": "20px",
                 display: "inline-flex",
