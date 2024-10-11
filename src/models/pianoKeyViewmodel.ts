@@ -1,8 +1,21 @@
-import { Key } from "~/models/viewModel";
-import { chordSeminoteToChordName, semitoneToNoteAndOctave } from "./notes";
+import {
+    chordSeminoteToChordName,
+    semitoneToNoteAndOctave,
+} from "../bussiness/notes";
+
+export type Key = {
+    seminote: number;
+    noteAndOctave: string;
+    myChordMark: string;
+    octave: number;
+    isBlack: boolean;
+    width: number;
+    left: number;
+    isPlaying: boolean;
+};
 
 export function createKeyViewmodel() {
-    return [...Array(88).keys()].map((keyIndex): Key => {
+    return [...Array(84).keys()].map((keyIndex): Key => {
         let octave = Math.floor(keyIndex / 12) + 1;
         let seminote = (keyIndex + 1) % 12 || 12;
         let whiteWidth = 20;

@@ -5,7 +5,7 @@ import { createSignal } from "solid-js";
 var piano = SampleLibrary.load({
     instruments: "piano",
 });
-Tone.ToneAudioBuffer.loaded().then((asdf) => {
+Tone.ToneAudioBuffer.loaded().then(() => {
     setIsToneLoaded(true);
 });
 
@@ -28,7 +28,3 @@ export function play(
         );
     });
 }
-
-Tone.ToneAudioBuffer.loaded().then(() => {
-    setIsToneLoaded(true);
-});

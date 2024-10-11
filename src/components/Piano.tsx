@@ -1,21 +1,13 @@
 import { batch, For } from "solid-js";
 import { createStore } from "solid-js/store";
-import { createKeyViewmodel } from "~/bussiness/pianoKeyViewmodel";
+import { createKeyViewmodel, Key } from "~/models/pianoKeyViewmodel";
 import {
     ChordType,
     getAllChordsForSeminote,
     semitoneToNoteAndOctave,
 } from "~/bussiness/notes";
 import { play } from "~/bussiness/player";
-import { Key } from "~/models/viewModel";
-
-export interface ChordNameAndNotes {
-    /**
-     * C4, C#4 ...
-     */
-    name: string;
-    notes: string[];
-}
+import { ChordNameAndNotes } from "~/models/notes";
 
 export function Piano(props: {
     chordTypes: ChordType[];
@@ -31,31 +23,40 @@ export function Piano(props: {
         let specialChords = chords; /*.filter(
             (c) => c!.matchingFifthSeminotes >= 3
         );*/
-        let randomChord =
-            specialChords[Math.floor(Math.random() * specialChords.length)]!;
-
-        let chordsOctaveOffset = 1;
-        let lowestSeminote =
-            randomChord.seminotes[
-                Math.floor(Math.random() * randomChord.seminotes.length)
-            ];
-        let mappedNotes = randomChord.seminotes.map((semi) => {
-            // randomize order of note in chord
-            return semitoneToNoteAndOctave(
-                semi,
-                semi >= lowestSeminote
-                    ? key.octave - chordsOctaveOffset
-                    : key.octave + 1 - chordsOctaveOffset
-            );
+        let mappedToViewmodel = specialChords.map((chord) => {
+            chord = chord!;
+            let chordsOctaveOffset = 1;
+            let lowestSeminote =
+                chord.seminotes[
+                    Math.floor(Math.random() * chord.seminotes.length)
+                ];
+            let mappedNotes = chord.seminotes.map((semi) => {
+                // randomize order of note in chord
+                return semitoneToNoteAndOctave(
+                    semi,
+                    semi >= lowestSeminote
+                        ? key.octave - chordsOctaveOffset
+                        : key.octave + 1 - chordsOctaveOffset
+                );
+            });
+            return {
+                mappedNotes,
+                name: chord.name,
+            };
         });
 
-        play(mappedNotes);
+        let randomChord =
+            mappedToViewmodel[
+                Math.floor(Math.random() * mappedToViewmodel.length)
+            ]!;
+
+        play(randomChord.mappedNotes);
         play([semitoneToNoteAndOctave(key.seminote, key.octave + 1)]);
 
         props.onChordPlay(
-            { name: randomChord.name, notes: mappedNotes },
-            specialChords.map((ch) => {
-                return { name: ch!.name, notes: [] };
+            { name: randomChord.name, notes: randomChord.mappedNotes },
+            mappedToViewmodel.map((ch) => {
+                return { name: ch!.name, notes: ch.mappedNotes };
             })
         );
         batch(() => {
@@ -65,7 +66,8 @@ export function Piano(props: {
                 false
             );
             setKeys(
-                (storeKey) => mappedNotes.includes(storeKey.noteAndOctave),
+                (storeKey) =>
+                    randomChord.mappedNotes.includes(storeKey.noteAndOctave),
                 "isPlaying",
                 true
             );
@@ -97,7 +99,7 @@ export function Piano(props: {
     };
 
     return (
-        <div style="height:120px; position:relative; overflow-x:scroll;scrollbar-width: thin; margin-top: 15px;">
+        <div style="height:120px; position:relative; overflow-x:auto;scrollbar-width: thin; margin-top: 15px;">
             <For each={keys}>
                 {(key) => (
                     <div
