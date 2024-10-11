@@ -6,11 +6,12 @@ import {
     getAllChordsForSeminote,
     semitoneToNoteAndOctave,
 } from "~/bussiness/notes";
-import { play } from "~/bussiness/player";
 import { ChordNameAndNotes } from "~/models/notes";
+import { ChordPlayMode, play } from "~/bussiness/player";
 
 export function Piano(props: {
     chordTypes: ChordType[];
+    chordPlayMode: ChordPlayMode;
     onChordPlay: (
         chord: ChordNameAndNotes,
         matchingChords: ChordNameAndNotes[]
@@ -50,8 +51,11 @@ export function Piano(props: {
                 Math.floor(Math.random() * mappedToViewmodel.length)
             ]!;
 
-        play(randomChord.mappedNotes);
-        play([semitoneToNoteAndOctave(key.seminote, key.octave + 1)]);
+        play(randomChord.mappedNotes, props.chordPlayMode);
+        play(
+            [semitoneToNoteAndOctave(key.seminote, key.octave + 1)],
+            props.chordPlayMode
+        );
 
         props.onChordPlay(
             { name: randomChord.name, notes: randomChord.mappedNotes },
@@ -82,7 +86,10 @@ export function Piano(props: {
     };
 
     let playKey = (key: Key) => {
-        play([semitoneToNoteAndOctave(key.seminote, key.octave)]);
+        play(
+            [semitoneToNoteAndOctave(key.seminote, key.octave)],
+            props.chordPlayMode
+        );
 
         batch(() => {
             setKeys(

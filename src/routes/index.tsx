@@ -6,29 +6,32 @@ import { ChordPlayMode, play } from "~/bussiness/player";
 import { Piano } from "~/components/Piano";
 import { ChordNameAndNotes } from "~/models/notes";
 
+let allChordTypes: ChordType[] = [
+    "major",
+    "minor",
+    "sus2",
+    "sus4",
+    "dom7",
+    "maj7",
+    "min7",
+];
+
+let allChordPlayModes: ChordPlayMode[] = ["fan-ascending", "together"];
+
 export default function Home() {
     let [currentChord, setCurrentChord] = createSignal<ChordNameAndNotes>();
     let [matchingChords, setMatchingChords] =
         createSignal<ChordNameAndNotes[]>();
     let [chordHistory, setChordHistory] = createSignal<ChordNameAndNotes[]>([]);
 
-    let [chordPlayMode, setChordPlayMode] =
-        createSignal<ChordPlayMode>("together");
     let [chordTypes, setChordTypes] = createStore<ChordType[]>([
         "major",
         "minor",
         "sus2",
         "sus4",
     ]);
-    let allChordTypes: ChordType[] = [
-        "major",
-        "minor",
-        "sus2",
-        "sus4",
-        "dom7",
-        "maj7",
-        "min7",
-    ];
+    let [chordPlayingMode, setChordPlayingMode] =
+        createSignal<ChordPlayMode>("fan-ascending");
 
     let chordTypeChange = (isChecked: boolean, chordType: ChordType) => {
         if (isChecked) {
@@ -63,9 +66,34 @@ export default function Home() {
                     </span>
                 ))}
             </div>
+            <div style="margin-top:15px;display: flex; justify-content:center">
+                {allChordPlayModes.map((playMode, index) => (
+                    <span
+                        style={{
+                            "border-radius": "2px",
+                            padding: "0px 10px",
+                            "background-color":
+                                index % 2 === 0
+                                    ? "rgb(210,210,210)"
+                                    : undefined,
+                        }}
+                    >
+                        {playMode}
+                        <input
+                            type="radio"
+                            checked={chordPlayingMode() === playMode}
+                            onInput={(e) => {
+                                console.log("input", playMode);
+                                setChordPlayingMode(playMode);
+                            }}
+                        ></input>
+                    </span>
+                ))}
+            </div>
 
             <Piano
                 chordTypes={chordTypes}
+                chordPlayMode={chordPlayingMode()}
                 onChordPlay={(chord, matchingChords) => {
                     setCurrentChord(chord);
                     setMatchingChords(matchingChords);
@@ -78,7 +106,7 @@ export default function Home() {
                     <ChordBadge
                         chordName={currentChord()?.name!}
                         onClick={() => {
-                            play(currentChord()?.notes!);
+                            play(currentChord()?.notes!, chordPlayingMode());
                         }}
                     ></ChordBadge>
                 </div>
@@ -92,8 +120,7 @@ export default function Home() {
                         <MiniChordBadge
                             chordName={chord.name}
                             onClick={() => {
-                                console.log("playing matching", chord.notes);
-                                play(chord.notes);
+                                play(chord.notes, chordPlayingMode());
                             }}
                         ></MiniChordBadge>
                     )}
@@ -108,7 +135,7 @@ export default function Home() {
                         <MiniChordBadge
                             chordName={chord.name}
                             onClick={() => {
-                                play(chord.notes);
+                                play(chord.notes, chordPlayingMode());
                             }}
                         ></MiniChordBadge>
                     )}

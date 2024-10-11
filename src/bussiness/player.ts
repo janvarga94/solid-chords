@@ -15,7 +15,7 @@ export type ChordPlayMode = "together" | "fan-ascending";
 
 export function play(
     mappedNotes: string[],
-    chordPlayMode: ChordPlayMode = "together"
+    chordPlayMode: ChordPlayMode = "fan-ascending"
 ) {
     if (!isToneLoaded()) return;
     const now = Tone.now();
