@@ -2,12 +2,14 @@ import * as Tone from "tone";
 import { SampleLibrary } from "../libs/tone-instruments";
 import { createSignal } from "solid-js";
 
-var piano = SampleLibrary.load({
-    instruments: "piano",
-});
-Tone.ToneAudioBuffer.loaded().then(() => {
-    setIsToneLoaded(true);
-});
+var piano = SampleLibrary.load({ instruments: "piano", ext: ".mp3" });
+Tone.ToneAudioBuffer.loaded()
+    .then(() => {
+        setIsToneLoaded(true);
+    })
+    .catch((e) => {
+        console.log("error loading audio: ", e);
+    });
 
 let [isToneLoaded, setIsToneLoaded] = createSignal(false);
 
@@ -18,6 +20,7 @@ export function play(
     chordPlayMode: ChordPlayMode = "fan-ascending"
 ) {
     if (!isToneLoaded()) return;
+
     const now = Tone.now();
     piano.toDestination();
     mappedNotes.forEach((note, index) => {

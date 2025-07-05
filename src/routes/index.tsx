@@ -18,7 +18,13 @@ let allChordTypes: ChordType[] = [
 
 let allChordPlayModes: ChordPlayMode[] = ["fan-ascending", "together"];
 
+// function fromServer() {
+//     "use server";
+//     console.log("hi serre");
+// }
+
 export default function Home() {
+    // fromServer();
     let [currentChord, setCurrentChord] = createSignal<ChordNameAndNotes>();
     let [matchingChords, setMatchingChords] =
         createSignal<ChordNameAndNotes[]>();
@@ -31,7 +37,7 @@ export default function Home() {
         "sus4",
     ]);
     let [chordPlayingMode, setChordPlayingMode] =
-        createSignal<ChordPlayMode>("fan-ascending");
+        createSignal<ChordPlayMode>("together");
 
     let chordTypeChange = (isChecked: boolean, chordType: ChordType) => {
         if (isChecked) {
@@ -42,7 +48,7 @@ export default function Home() {
     };
 
     return (
-        <>
+        <div>
             <div style="margin-top:15px;display: flex; justify-content:center">
                 {allChordTypes.map((chordType, index) => (
                     <span
@@ -67,6 +73,7 @@ export default function Home() {
                 ))}
             </div>
             <div style="margin-top:15px;display: flex; justify-content:center">
+                play mode:
                 {allChordPlayModes.map((playMode, index) => (
                     <span
                         style={{
@@ -111,39 +118,48 @@ export default function Home() {
                     ></ChordBadge>
                 </div>
             </Show>
-            <div style="margin-top: 10px; font-size:10px; display: flex; justify-content:center">
-                <i>matching chords</i>
-            </div>
-            <div style="display: flex; justify-content:center; flex-wrap: wrap;">
-                <For each={matchingChords()}>
-                    {(chord) => (
-                        <MiniChordBadge
-                            chordName={chord.name}
-                            onClick={() => {
-                                play(chord.notes, chordPlayingMode());
-                            }}
-                        ></MiniChordBadge>
-                    )}
-                </For>
-            </div>
-            <div style="margin-top: 10px; font-size:10px; display: flex; justify-content:center">
-                <i>history</i>
-            </div>
-            <div style="display: flex; justify-content:center; flex-wrap: wrap;">
-                <For each={chordHistory()}>
-                    {(chord) => (
-                        <MiniChordBadge
-                            chordName={chord.name}
-                            onClick={() => {
-                                play(chord.notes, chordPlayingMode());
-                            }}
-                        ></MiniChordBadge>
-                    )}
-                </For>
-            </div>
+            <Show when={matchingChords()?.length}>
+                <div class="card w-96  shadow-sm  m-auto ">
+                    <div class="card-body">
+                        <h3 class="card-title">matching chords</h3>
+                        <div style="display: flex; justify-content:center; flex-wrap: wrap;">
+                            <For each={matchingChords()}>
+                                {(chord) => (
+                                    <MiniChordBadge
+                                        chordName={chord.name}
+                                        onClick={() => {
+                                            play(
+                                                chord.notes,
+                                                chordPlayingMode()
+                                            );
+                                        }}
+                                    ></MiniChordBadge>
+                                )}
+                            </For>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+            <Show when={chordHistory().length}>
+                <div style="margin-top: 10px; font-size:10px; display: flex; justify-content:center">
+                    <i>history</i>
+                </div>
+                <div style="display: flex; justify-content:center; flex-wrap: wrap;">
+                    <For each={chordHistory()}>
+                        {(chord) => (
+                            <MiniChordBadge
+                                chordName={chord.name}
+                                onClick={() => {
+                                    play(chord.notes, chordPlayingMode());
+                                }}
+                            ></MiniChordBadge>
+                        )}
+                    </For>
+                </div>
+            </Show>
             <div style="display: flex; justify-content:center">
                 <img width="400" src="fifths.webp" />
             </div>
-        </>
+        </div>
     );
 }
