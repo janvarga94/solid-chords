@@ -24,6 +24,7 @@ let allChordPlayModes: ChordPlayMode[] = ["fan-ascending", "together"];
 // }
 
 export default function Home() {
+    console.log("in index");
     // fromServer();
     let [currentChord, setCurrentChord] = createSignal<ChordNameAndNotes>();
     let [matchingChords, setMatchingChords] =
