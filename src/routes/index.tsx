@@ -50,50 +50,52 @@ export default function Home() {
 
     return (
         <div>
-            <h1 class="text-center">Play a note and I'll find chords</h1>
+            <h1 class="text-center mt-4">
+                Play a note and I'll find matching chords
+            </h1>
             <div style="margin-top:15px;display: flex; justify-content:center">
-                {allChordTypes.map((chordType, index) => (
-                    <span
-                        style={{
-                            "border-radius": "2px",
-                            padding: "0px 10px",
-                        }}
-                    >
-                        {chordType}
-                        <input
-                            class="checkbox checkbox-sm"
-                            type="checkbox"
-                            checked={chordTypes.includes(chordType)}
-                            onInput={(e) =>
-                                chordTypeChange(e.target.checked, chordType)
+                <ul class="steps">
+                    {allChordTypes.map((chordType, index) => (
+                        <li
+                            onClick={(e) =>
+                                chordTypeChange(
+                                    !chordTypes.includes(chordType),
+                                    chordType
+                                )
                             }
-                        ></input>
-                    </span>
-                ))}
-            </div>
-            <div style="margin-top:15px;display: flex; justify-content:center">
-                play mode:
-                {allChordPlayModes.map((playMode, index) => (
-                    <span
-                        style={{
-                            "border-radius": "2px",
-                            padding: "0px 10px",
-                        }}
-                    >
-                        {playMode}
-                        <input
-                            type="radio"
-                            class="radio radio-xs"
-                            checked={chordPlayingMode() === playMode}
-                            onInput={(e) => {
+                            data-content={
+                                chordTypes.includes(chordType) ? "✓" : "✕"
+                            }
+                            class="step step-neutral"
+                            classList={{
+                                "step-info": chordTypes.includes(chordType),
+                            }}
+                        >
+                            {chordType}
+                        </li>
+                    ))}
+                </ul>
+                <span class="pt-2">
+                    <i>play mode: </i>
+                    {allChordPlayModes.map((playMode, index) => (
+                        <button
+                            style={{
+                                padding: "0px 10px",
+                            }}
+                            class="btn"
+                            onclick={(e) => {
                                 console.log("input", playMode);
                                 setChordPlayingMode(playMode);
                             }}
-                        ></input>
-                    </span>
-                ))}
+                            classList={{
+                                "btn-neutral": chordPlayingMode() === playMode,
+                            }}
+                        >
+                            {playMode}
+                        </button>
+                    ))}
+                </span>
             </div>
-
             <Piano
                 chordTypes={chordTypes}
                 chordPlayMode={chordPlayingMode()}
