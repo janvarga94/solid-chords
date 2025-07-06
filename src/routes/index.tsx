@@ -50,6 +50,7 @@ export default function Home() {
 
     return (
         <div>
+            <h1 class="text-center">Play a note and I'll find chords</h1>
             <div style="margin-top:15px;display: flex; justify-content:center">
                 {allChordTypes.map((chordType, index) => (
                     <span
@@ -105,6 +106,7 @@ export default function Home() {
 
             <Show when={currentChord()}>
                 <div style="margin-top:15px;display: flex; justify-content:center">
+                    <i>random chord</i>
                     <ChordBadge
                         chordName={currentChord()?.name!}
                         onClick={() => {
