@@ -106,7 +106,7 @@ export function Piano(props: {
     };
 
     return (
-        <div style="height:120px; position:relative; overflow-x:auto;scrollbar-width: thin; margin-top: 15px;">
+        <div style="width: 980px; height:120px; position:relative; overflow-x:auto;scrollbar-width: thin; margin-top: 15px; margin-left:auto; margin-right:auto">
             <For each={keys}>
                 {(key) => (
                     <div
@@ -130,7 +130,7 @@ export function Piano(props: {
                                   ? "black"
                                   : "white",
                             color: key.isBlack ? "white" : "black",
-                            height: key.isBlack ? "70px" : "100px",
+                            height: key.isBlack ? "70px" : "110px",
                             position: "absolute",
                             left: key.left + "px",
                             width: key.width + "px",
@@ -140,7 +140,7 @@ export function Piano(props: {
                         }}
                     >
                         <div style="height:20px; "></div>
-                        <div style="height:25px; ">
+                        <div style="height:35px; ">
                             <div
                                 style={{
                                     "font-size": key.isBlack ? "5px" : "8px",

@@ -1,5 +1,4 @@
 import * as Tone from "tone";
-import { SampleLibrary } from "../libs/tone-instruments";
 import { createSignal } from "solid-js";
 
 var piano: any;

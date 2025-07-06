@@ -56,14 +56,11 @@ export default function Home() {
                         style={{
                             "border-radius": "2px",
                             padding: "0px 10px",
-                            "background-color":
-                                index % 2 === 0
-                                    ? "rgb(210,210,210)"
-                                    : undefined,
                         }}
                     >
                         {chordType}
                         <input
+                            class="checkbox checkbox-sm"
                             type="checkbox"
                             checked={chordTypes.includes(chordType)}
                             onInput={(e) =>
@@ -80,15 +77,12 @@ export default function Home() {
                         style={{
                             "border-radius": "2px",
                             padding: "0px 10px",
-                            "background-color":
-                                index % 2 === 0
-                                    ? "rgb(210,210,210)"
-                                    : undefined,
                         }}
                     >
                         {playMode}
                         <input
                             type="radio"
+                            class="radio radio-xs"
                             checked={chordPlayingMode() === playMode}
                             onInput={(e) => {
                                 console.log("input", playMode);
