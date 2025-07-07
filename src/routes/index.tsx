@@ -53,7 +53,10 @@ export default function Home() {
             <h1 class="text-center mt-4">
                 Play a note and I'll find matching chords
             </h1>
-            <div style="margin-top:15px;display: flex; justify-content:center">
+            <div class="text-center mt-2">
+                <i>Key center (1) is C, in future it will be changable</i>
+            </div>
+            <div class="mt-8 flex justify-center">
                 <ul class="steps">
                     {allChordTypes.map((chordType, index) => (
                         <li
@@ -66,7 +69,7 @@ export default function Home() {
                             data-content={
                                 chordTypes.includes(chordType) ? "✓" : "✕"
                             }
-                            class="step step-neutral"
+                            class="step step-neutral text-sm"
                             classList={{
                                 "step-info": chordTypes.includes(chordType),
                             }}
@@ -75,28 +78,34 @@ export default function Home() {
                         </li>
                     ))}
                 </ul>
-                <span class="pt-2">
-                    <i>play mode: </i>
-                    {allChordPlayModes.map((playMode, index) => (
-                        <button
-                            style={{
-                                padding: "0px 10px",
-                            }}
-                            class="btn"
-                            onclick={(e) => {
-                                console.log("input", playMode);
-                                setChordPlayingMode(playMode);
-                            }}
-                            classList={{
-                                "btn-neutral": chordPlayingMode() === playMode,
-                            }}
-                        >
-                            {playMode}
-                        </button>
-                    ))}
+                <span class="flex flex-col -mt-4 pl-4">
+                    <i class="text-center text-xs">play mode: </i>
+                    <div>
+                        {allChordPlayModes.map((playMode, index) => (
+                            <button
+                                style={{
+                                    padding: "0px 10px",
+                                }}
+                                class="btn"
+                                onclick={(e) => {
+                                    console.log("input", playMode);
+                                    setChordPlayingMode(playMode);
+                                }}
+                                classList={{
+                                    "btn-neutral":
+                                        chordPlayingMode() === playMode,
+                                    "rounded-s-none": index === 1,
+                                    "rounded-e-none": index === 0,
+                                }}
+                            >
+                                {playMode}
+                            </button>
+                        ))}
+                    </div>
                 </span>
             </div>
             <Piano
+                class="mt-10"
                 chordTypes={chordTypes}
                 chordPlayMode={chordPlayingMode()}
                 onChordPlay={(chord, matchingChords) => {
@@ -107,14 +116,19 @@ export default function Home() {
             ></Piano>
 
             <Show when={currentChord()}>
-                <div style="margin-top:15px;display: flex; justify-content:center">
-                    <i>random chord</i>
-                    <ChordBadge
-                        chordName={currentChord()?.name!}
-                        onClick={() => {
-                            play(currentChord()?.notes!, chordPlayingMode());
-                        }}
-                    ></ChordBadge>
+                <div class="mt-4 flex flex-col">
+                    <i class="text-center text-xs">random chord</i>
+                    <div class="text-center">
+                        <ChordBadge
+                            chordName={currentChord()?.name!}
+                            onClick={() => {
+                                play(
+                                    currentChord()?.notes!,
+                                    chordPlayingMode()
+                                );
+                            }}
+                        ></ChordBadge>
+                    </div>
                 </div>
             </Show>
             <Show when={matchingChords()?.length}>

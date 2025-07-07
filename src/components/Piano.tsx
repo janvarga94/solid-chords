@@ -12,6 +12,7 @@ import { ChordPlayMode, play } from "~/bussiness/player";
 export function Piano(props: {
     chordTypes: ChordType[];
     chordPlayMode: ChordPlayMode;
+    class?: string;
     onChordPlay: (
         chord: ChordNameAndNotes,
         matchingChords: ChordNameAndNotes[]
@@ -106,7 +107,10 @@ export function Piano(props: {
     };
 
     return (
-        <div style="width: 980px; height:120px; position:relative; overflow-x:auto;scrollbar-width: thin; margin-top: 15px; margin-left:auto; margin-right:auto">
+        <div
+            class={props.class}
+            style="width: 980px; height:120px; position:relative; overflow-x:auto;scrollbar-width: thin; margin-left:auto; margin-right:auto"
+        >
             <For each={keys}>
                 {(key) => (
                     <div

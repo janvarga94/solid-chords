@@ -1,8 +1,8 @@
 export function ChordBadge(props: { chordName: string; onClick: () => void }) {
     return (
-        <div onMouseDown={props.onClick} class="btn">
+        <button onMouseDown={props.onClick} class="btn">
             {props.chordName}
-        </div>
+        </button>
     );
 }
 
