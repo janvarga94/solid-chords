@@ -11,8 +11,8 @@ export function MiniChordBadge(props: {
     onClick: () => void;
 }) {
     return (
-        <div onMouseDown={props.onClick} class="btn btn-sm">
+        <button onMouseDown={props.onClick} class="btn btn-sm">
             {props.chordName}
-        </div>
+        </button>
     );
 }

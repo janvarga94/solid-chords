@@ -18,11 +18,6 @@ let allChordTypes: ChordType[] = [
 
 let allChordPlayModes: ChordPlayMode[] = ["fan-ascending", "together"];
 
-// function fromServer() {
-//     "use server";
-//     console.log("hi serre");
-// }
-
 export default function Home() {
     console.log("in index");
     // fromServer();
@@ -115,28 +110,54 @@ export default function Home() {
                 }}
             ></Piano>
 
-            <Show when={currentChord()}>
-                <div class="mt-4 flex flex-col">
-                    <i class="text-center text-xs">random chord</i>
-                    <div class="text-center">
-                        <ChordBadge
-                            chordName={currentChord()?.name!}
-                            onClick={() => {
-                                play(
-                                    currentChord()?.notes!,
-                                    chordPlayingMode()
-                                );
-                            }}
-                        ></ChordBadge>
-                    </div>
-                </div>
-            </Show>
-            <Show when={matchingChords()?.length}>
-                <div class="card w-96  shadow-sm  m-auto ">
-                    <div class="card-body">
-                        <h3 class="card-title">matching chords</h3>
-                        <div style="display: flex; justify-content:center; flex-wrap: wrap;">
-                            <For each={matchingChords()}>
+            <div class="flex justify-center">
+                <div>
+                    <Show when={currentChord()}>
+                        <div class="mt-4 flex flex-col">
+                            <i class="text-center text-xs">random chord</i>
+                            <div class="text-center">
+                                <ChordBadge
+                                    chordName={currentChord()?.name!}
+                                    onClick={() => {
+                                        play(
+                                            currentChord()?.notes!,
+                                            chordPlayingMode()
+                                        );
+                                    }}
+                                ></ChordBadge>
+                            </div>
+                        </div>
+                    </Show>
+                    <Show when={matchingChords()?.length}>
+                        <div class="w-96  m-auto mt-4">
+                            <div class="text-center text-xs">
+                                <i>matching chords</i>
+                            </div>
+                            <div class="flex justify-center flex-wrap">
+                                <For each={matchingChords()}>
+                                    {(chord) => (
+                                        <MiniChordBadge
+                                            chordName={chord.name}
+                                            onClick={() => {
+                                                play(
+                                                    chord.notes,
+                                                    chordPlayingMode()
+                                                );
+                                            }}
+                                        ></MiniChordBadge>
+                                    )}
+                                </For>
+                            </div>
+                        </div>
+                    </Show>
+                    <Show when={chordHistory().length}>
+                        <div class="w-96  m-auto mt-4">
+                            <div class="text-center text-xs">
+                                <i>history</i>
+                            </div>
+                        </div>
+                        <div class="w-96 m-auto flex justify-center flex-wrap">
+                            <For each={chordHistory()}>
                                 {(chord) => (
                                     <MiniChordBadge
                                         chordName={chord.name}
@@ -150,28 +171,11 @@ export default function Home() {
                                 )}
                             </For>
                         </div>
-                    </div>
+                    </Show>
                 </div>
-            </Show>
-            <Show when={chordHistory().length}>
-                <div style="margin-top: 10px; font-size:10px; display: flex; justify-content:center">
-                    <i>history</i>
+                <div>
+                    <img width="400" src="fifths.webp" />
                 </div>
-                <div style="display: flex; justify-content:center; flex-wrap: wrap;">
-                    <For each={chordHistory()}>
-                        {(chord) => (
-                            <MiniChordBadge
-                                chordName={chord.name}
-                                onClick={() => {
-                                    play(chord.notes, chordPlayingMode());
-                                }}
-                            ></MiniChordBadge>
-                        )}
-                    </For>
-                </div>
-            </Show>
-            <div style="display: flex; justify-content:center">
-                <img width="400" src="fifths.webp" />
             </div>
         </div>
     );
